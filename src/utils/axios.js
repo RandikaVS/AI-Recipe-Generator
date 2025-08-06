@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { SERVER_URL, OPENAI_BASE_URL } from '../config-global';
+import { OPENAI_BASE_URL } from '../config-global';
 
 // ----------------------------------------------------------------------
 

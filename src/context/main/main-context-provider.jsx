@@ -12,6 +12,9 @@ import { generateRecipePrompt } from '../../utils/generatePrompt';
 const initialState = {
   loading: false,
   recipes: [],
+  imagePrompt:"",
+  imageLoading:false,
+  imageUrl:null
 
 };
 
@@ -40,6 +43,30 @@ const reducer = (state, action) => {
       recipes: action.payload.recipes,
     };
   }
+  if (action.type === 'SET_IMAGE_PROMPT') {
+    return {
+      ...state,
+      imagePrompt: action.payload.imagePrompt,
+    };
+  }
+  if (action.type === 'SET_RECIPE_IMAGE') {
+    return {
+      ...state,
+      imageUrl: action.payload.imageUrl? action.payload.imageUrl: state.imageUrl,
+    };
+  }
+  if (action.type === 'IMAGE_LOADING_START') {
+    return {
+      ...state,
+      imageLoading: true,
+    };
+  }
+  if (action.type === 'IMAGE_LOADING_END') {
+    return {
+      ...state,
+      imageLoading: false,
+    };
+  }
   return state;
 
 };
@@ -66,7 +93,10 @@ export function MainContextProvider({children}) {
   const setLoadingStart = () => dispatch({ type: 'LOADING_START' });
 
   const setLoadingEnd = () => dispatch({ type: 'LOADING_END' });
+  
+  const setImageLoadingStart = () => dispatch({ type: 'IMAGE_LOADING_START' });
 
+  const setImageLoadingEnd = () => dispatch({ type: 'IMAGE_LOADING_END' });
 
   const getRecipeFromOpenAI = useCallback(async (ingredients) => {
 
@@ -87,43 +117,81 @@ export function MainContextProvider({children}) {
 
         const prompt = generateRecipePrompt(ingredients);
 
-        // const response = await client.chat.completions.create({
-        //   model: 'gpt-4o-mini',
-        //   messages: [{ role: 'developer', content: prompt }],
-        //   temperature: 0.7,
-        // });
-
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer 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`,
-          },
-          body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: [{ role: 'developer', content: prompt }],
-            temperature: 0.7,
-          }),
+        const response = await client.chat.completions.create({
+          model: 'gpt-4.1',
+          messages: [{ role: 'developer', content: prompt }],
+          temperature: 0.7,
+          
         });
 
         const rawContent = response.choices[0]?.message?.content || '';
         const cleanedContent = rawContent.replace(/```json|```/g, '').trim();
        
         const content = JSON.parse(cleanedContent);
-       
-        dispatch({
+
+        const parsedRecipe = content?.recipes || []
+        const imagePromptDescription = content.imagePrompt || ""
+        
+         dispatch({
           type: 'SET_SEARCH_RESULT',
           payload: {
-            recipes: content
+            recipes: parsedRecipe
           }
         });
 
-
+         dispatch({
+          type: 'SET_IMAGE_PROMPT',
+          payload: {
+            imagePrompt: imagePromptDescription
+          }
+        });
+       
+       
       } catch (error) {
         console.error('OpenAI Error:', error);
       } finally {
         setLoadingEnd();
       }
+  }, []);
+
+  const generateRecipeImage  = useCallback(async (imagePrompt) => {
+
+    try {
+
+      setImageLoadingStart()
+
+      const client = new OpenAI({
+          apiKey: OPENAI_API_KEY,
+          dangerouslyAllowBrowser: true,
+      });
+
+      const response = await client.images.generate({
+        prompt: imagePrompt,
+        model: "dall-e-2", 
+        n: 1,
+        size: "1024x1024",
+      });
+
+      const imageUrl = response.data[0]?.url;
+
+      
+
+      if (imageUrl) {
+        dispatch({
+          type: 'SET_RECIPE_IMAGE',
+          payload: {
+            imageUrl: imageUrl
+          }
+        });
+      } else {
+        console.error("❌ No image URL returned");
+      }
+    } catch (error) {
+      console.error("Image Generation Error:", error);
+    }
+    finally{
+      setImageLoadingEnd()
+    }
   }, []);
 
   // ----------------------------------------------------------------------
@@ -133,14 +201,22 @@ export function MainContextProvider({children}) {
     () => ({
       loading: state.loading,
       recipes: state.recipes,
+      imagePrompt: state.imagePrompt,
+      imageUrl: state.imageUrl,
+      imageLoading: state.imageLoading,
 
       getRecipeFromOpenAI,
+      generateRecipeImage
      
     }), [
           getRecipeFromOpenAI,
+          generateRecipeImage,
 
           state.loading,
           state.recipes,
+          state.imagePrompt,
+          state.imageUrl,
+          state.imageLoading,
           state
         ]);
 

@@ -1,4 +1,5 @@
 
+
 export function generateRecipePrompt(ingredients) {
     return `
             You are a smart AI chef assistant.
@@ -16,28 +17,37 @@ export function generateRecipePrompt(ingredients) {
             7. **Suggest dietary modifications** such as **vegan** or **gluten-free** alternatives.
             8. Output must be returned in **strict JSON format** for frontend rendering.
 
+             ### Additional Image Request:
+             At the end of the JSON array, include **one single shared "imagePrompt"** field:
+             - This is a **common image description** that visually represents all the recipes together.
+             - The image prompt should describe a realistic, attractive dish using most of the ingredients provided.
+             - Example: "A warm rustic table with various tomato-based dishes like soup, salsa, and roasted vegetables, all garnished with herbs and served in cozy bowls."
+
             ### Output format (JSON array of 3-5 recipes):
 
-            [
-                {
-                "title": "Recipe Title",
-                "ingredients": ["ingredient1", "ingredient2", "..."],
-                "instructions": "Step-by-step instructions...",
-                "usedIngredients": ["ingredient1", "ingredient2"],
-                "missingIngredients": ["ingredientX"],
-                "substitutions": {
-                    "ingredientX": "substitution"
-                },
-                "dietaryModifications": {
-                    "vegan": "Tip for making this vegan...",
-                    "glutenFree": "Tip for making this gluten-free..."
-                },
-                "scaling": {
-                    "2_servings": "Scaling instructions or tip...",
-                    "4_servings": "Scaling instructions or tip..."
-                }
-                }
-            ]
+            {
+                "recipes": [
+                    {
+                    "title": "Recipe Title",
+                    "ingredients": ["ingredient1", "ingredient2"],
+                    "instructions": "Step-by-step instructions...",
+                    "usedIngredients": ["ingredient1", "ingredient2"],
+                    "missingIngredients": ["ingredientX"],
+                    "substitutions": {
+                        "ingredientX": "substitution"
+                    },
+                    "dietaryModifications": {
+                        "vegan": "Tip to make it vegan...",
+                        "glutenFree": "Tip to make it gluten-free..."
+                    },
+                    "scaling": {
+                        "2_servings": "Scaling instructions...",
+                        "4_servings": "Scaling instructions..."
+                    }
+                    }
+                ],
+                "imagePrompt": "A single shared image description representing all the recipes"
+            }
 
             Important notes:
             - Use only the input ingredients provided unless essential (and list as missing).

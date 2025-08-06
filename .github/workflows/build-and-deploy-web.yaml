@@ -1,0 +1,69 @@
+name: Deploy AI Recipe Generator
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: CODE CHECK-OUT
+        uses: actions/checkout@v2
+
+      - name: INSTALL THE GCLOUD CLI
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_SMART_CHEF }}
+
+      - name: SET UP GCLOUD CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+            project_id: ${{ secrets.GOOGLE_PROJECT_SMART_CHEF }}
+            install_components: 'gke-gcloud-auth-plugin'
+
+      - name: SET COMMON ENVIRONEMENT SPECIFIC VARIABLES
+        run: |
+          echo "GOOGLE_PROJECT=${{ secrets.GOOGLE_PROJECT_SMART_CHEF }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+          echo "VITE_APP_OPEN_AI_BASE_URL=https://api.openai.com/v1" >> $GITHUB_ENV
+          echo "VITE_APP_OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+          echo "DOCKER_IMAGE=docker.io/sahanrandika/smart-chef-web-image:${{ env.IMAGE_TAG }}" >> $GITHUB_ENV
+          echo "SERVICE_NAME=smart-chef-web-service" >> $GITHUB_ENV
+
+      - name: LOG IN TO DOCKER HUB
+        env:
+            DOCKER_USERNAME: 'sahanrandika'
+            DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN_SMART_CHEF }}
+        run: |
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+      - name: BUILD AND PUSH THE DOCKER IMAGE TO DOCKER HUB
+        env:
+            DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
+            VITE_APP_OPEN_AI_BASE_URL: ${{ env.VITE_APP_OPEN_AI_BASE_URL }}
+            VITE_APP_OPENAI_API_KEY: ${{ env.VITE_APP_OPENAI_API_KEY }}
+        run: |
+            docker buildx create --use
+            docker buildx build \
+            --build-arg ARG_VITE_APP_OPEN_AI_BASE_URL=$VITE_APP_OPEN_AI_BASE_URL \
+            --build-arg ARG_VITE_APP_OPENAI_API_KEY=$VITE_APP_OPENAI_API_KEY \
+            --platform=linux/amd64 \
+            -t "${DOCKER_IMAGE}" \
+            --push .
+        
+
+      - name: DEPLOY TO GOOGLE CLOUD RUN
+        env:
+          GOOGLE_PROJECT: ${{ secrets.GOOGLE_PROJECT_SMART_CHEF }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          SERVICE_NAME: ${{ env.SERVICE_NAME }}
+          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
+        run: |
+          gcloud run deploy $SERVICE_NAME \
+            --image=${DOCKER_IMAGE} \
+            --region=us-west2 \
+            --platform=managed \
+            --allow-unauthenticated
