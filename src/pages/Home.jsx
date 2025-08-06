@@ -1,25 +1,40 @@
 
 import React, { useContext, useEffect } from "react"
+import { styled } from '@mui/material/styles';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Grid from '@mui/material/Grid';
 import { Link } from "react-router-dom"
 
 import "../styles/Home.css"
 
 import IngredientInput from "../components/IngredientInput"
 import { MainContext } from "../context/main/main-context"
-import RecipeCard from "../components/RecipeCard"
 import { useLocalStorage } from "../hooks/use-local-storage"
+import RecipeViewCard from "../components/RecipeViewCard"
+import RecipeSearchModal from "../components/RecipeSearchModal";
+
+const Item = styled(Paper)(({ theme }) => ({
+  backgroundColor: '#fff',
+  ...theme.typography.body2,
+  padding: theme.spacing(1),
+  textAlign: 'center',
+  color: (theme.vars ?? theme).palette.text.secondary,
+  ...theme.applyStyles('dark', {
+    backgroundColor: '#1A2027',
+  }),
+}));
 
 function Home() {
 
-  const { getRecipeFromOpenAI, recipes } = useContext(MainContext)
+  const { getRecipeFromOpenAI, recipes, imagePrompt, generateRecipeImage, imageUrl, loading} = useContext(MainContext)
 
   const { state: recentRecipes, update: updateRecentRecipes } = useLocalStorage('recent_recipes', []);
 
-  const [listRecipes, setListRecipes] = React.useState([])
-  const [newRecipes, setNewRecipes] = React.useState([])
-  const [keyword, setKeyword] = React.useState("")
   const [searchResult, setSearchResult] = React.useState([])
   const [selectedIngredients, setSelectedIngredients] = React.useState([])
+  const [recipeImage, setRecipeImage] = React.useState(null)
+  
 
   const handleSearch = async() => {
     
@@ -46,6 +61,22 @@ function Home() {
     }
 
   }, [recipes])
+
+  useEffect(() => {
+    
+    if(imagePrompt && imagePrompt != "") {
+      generateRecipeImage(imagePrompt)
+    }
+
+  }, [imagePrompt])
+
+  useEffect(() => {
+    if(imageUrl){
+      
+      setRecipeImage(imageUrl)
+    }
+  }, [imageUrl])
+  
   
 
   return (
@@ -71,86 +102,13 @@ function Home() {
             />
           </div>
 
-          <div
-            className="modal fade"
-            id="search-recipe"
-            tabIndex={0}
-            aria-labelledby="exampleModalLabel"
-            aria-hidden="true"
-          >
-            <div className="modal-dialog modal-xl">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h1 className="modal-title fs-5" id="exampleModalLabel">
-                    Search Recipe by Ingredients
-                  </h1>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  ></button>
-                </div>
-                <div className="modal-body">
-                  <div className="mb-4">
-                    <label className="form-label fw-semibold mb-3">
-                      <span style={{ color: "#2e266f" }}>
-                        🥗 Add ingredients you have available:
-                      </span>
-                    </label>
-                    <IngredientInput
-                      ingredients={selectedIngredients}
-                      setIngredients={setSelectedIngredients}
-                      placeholder="Start typing ingredients... (e.g., chicken, rice, tomatoes)"
-                    />
-                  </div>
-                  
-                  {selectedIngredients.length > 0 && (
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <span className="text-muted">
-                        {selectedIngredients.length} ingredient{selectedIngredients.length !== 1 ? 's' : ''} selected
-                      </span>
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={handleSearch}
-                        style={{ backgroundColor: "#efc81a", borderColor: "#efc81a", color: "#2e266f" }}
-                      >
-                        🔍 Search Recipes
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="row justify-content-center gap-1 gap-sm-2 gap-md-4 mt-4">
-                    {searchResult.length > 0
-                      ? searchResult.map((item,index) => {
-                          return (
-                            <RecipeCard recipe={item} key={index}/>
-                          )
-                        })
-                      : selectedIngredients.length > 0 
-                        ? <div className="text-center text-muted py-4">
-                            <p>Click "Search Recipes" to find recipes with your selected ingredients!</p>
-                          </div>
-                        : <div className="text-center text-muted py-4">
-                            <p>Add some ingredients above to start searching for recipes</p>
-                          </div>
-                    }
-                  </div>
-                </div>
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    data-bs-dismiss="modal"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-
-          </div>
+          <RecipeSearchModal 
+            selectedIngredients={selectedIngredients}
+            setSelectedIngredients={setSelectedIngredients}
+            handleSearch={handleSearch}
+            searchResult={searchResult}
+            imageUrl={recipeImage}
+          />
 
           <div className="col text-center text-lg-end animate__animated animate__fadeInRight">
             <img
@@ -162,29 +120,31 @@ function Home() {
         </div>
       </div>
 
-      {recentRecipes?.recent?.length > 0 ? (
-        <>
-          <div
-            className="container d-flex align-items-center mt-3 mb-5 animate__animated animate__flipInX"
-            style={{ height: "80px" }}
-          >
+     {recentRecipes?.recent?.length > 0 ? (
+          <>
             <div
-              className="vr"
-              style={{ width: "15px", backgroundColor: "#efc81a", opacity: "100%" }}
-            ></div>
-            <p className="m-0 ms-3 fs-1 fw-semibold" style={{ color: "#3f3a3a" }}>
-              Your Recent Searches
-            </p>
-          </div>
-
-          <div className="container px-4 px-md-4 py-5 mb-5 container-popular-recipe">
-            <div className="row justify-content-center gap-1 gap-sm-2 gap-md-4">
-              {recentRecipes.recent.map((item, index) => (
-                <RecipeCard recipe={item} key={index} />
-              ))}
+              className="container d-flex align-items-center mt-3 mb-5 animate__animated animate__flipInX"
+              style={{ height: "80px" }}
+            >
+              <div
+                className="vr"
+                style={{ width: "15px", backgroundColor: "#efc81a", opacity: "100%" }}
+              ></div>
+              <p className="m-0 ms-3 fs-1 fw-semibold" style={{ color: "#3f3a3a" }}>
+                Your Recent Searches
+              </p>
             </div>
-          </div>
-        </>
+
+            <Box sx={{ flexGrow: 1 }} className="container px-4 py-5 mb-5 container-popular-recipe">
+              <Grid container spacing={4}> 
+                {recentRecipes.recent.map((item, index) => (
+                  <Grid item xs={12} sm={6} key={index}>
+                    <RecipeViewCard recipe={item} imagePath={recipeImage} width={600}/>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          </>
     ):(
 
       <>
@@ -206,7 +166,7 @@ function Home() {
           <div className="row flex-column gap-5 flex-lg-row py-5">
             <div className="col text-center text-lg-start animate__animated animate__fadeInLeft">
               <img
-                src="./img/nasi-goreng-sederhana.webp"
+                src="./img/kottu.jpg"
                 alt="food"
                 style={{ width: "80%" }}
               />
@@ -216,22 +176,16 @@ function Home() {
                 className="text-center text-lg-start fs-1"
                 style={{ color: "#3f3a3a" }}
               >
-                Nasi Goreng Sederhana
+                Kottu Roti – Sri Lanka’s Street Food Star
               </h2>
               <hr className="opacity-100" />
               <p
                 style={{ color: "#3f3a3a" }}
                 className="text-center text-lg-start"
               >
-                Resep Nasi Goreng Sederhana, Praktis Lezat Hanya dengan Lima Bahan
+                Kottu Roti is Sri Lanka’s iconic street food — a sizzling blend of chopped godamba roti, vegetables, eggs, and your choice of meat, cooked on a hot griddle with bold spices. A must-try comfort food that's noisy, spicy, and deeply satisfying.
               </p>
-              <Link
-                to="/detail-recipe/12"
-                className="btn btn-lg"
-                style={{ backgroundColor: "#efc81a", color: "#fff" }}
-              >
-                Learn More
-              </Link>
+             
             </div>
           </div>
         </div>
@@ -255,10 +209,10 @@ function Home() {
           <div className="row flex-column gap-5 flex-lg-row py-5">
             <div className="col text-center text-lg-start animate__animated animate__fadeInLeft">
               <img
-                src='./img/Rectangle-319.webp'
+                src='./img/Jackfruit-wrap-1.jpg'
                 alt="food"
                 onError={addDefaultSrc}
-                style={{ width: "80%" }}
+                style={{ width: "40vw", height:"80vh" }}
               />
             </div>
             <div className="col-8 col-lg-4 d-flex flex-column d-lg-block justify-content-center align-self-center animate__animated animate__fadeInRight">
@@ -266,22 +220,16 @@ function Home() {
                 className="text-center text-lg-start fs-1"
                 style={{ color: "#3f3a3a" }}
               >
-                {newRecipes?.title}
+                Jackfruit Pulled Curry Wrap – Vegan Delight with a Local Twist
               </h2>
               <hr className="opacity-100" style={{ width: "25% !important" }} />
               <p
                 style={{ color: "#3f3a3a" }}
                 className="text-center text-lg-start"
               >
-                Resep Terbaru yang Dapat Anda coba untuk Keluarga Kesayangan
+                Inspired by plant-based trends, this wrap features young jackfruit slow-cooked in creamy coconut and curry leaves, wrapped in flatbread for a healthy, delicious alternative to meat-based meals. Great for lunch or a light dinner.
               </p>
-              <Link
-                to={`/detail-recipe/${newRecipes?.id}`}
-                className="btn btn-lg"
-                style={{ backgroundColor: "#efc81a", color: "#fff" }}
-              >
-                Learn More
-              </Link>
+              
             </div>
           </div>
         </div>

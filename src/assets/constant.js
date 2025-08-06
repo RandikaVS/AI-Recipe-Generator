@@ -1,38 +1,8 @@
-// export const commonIngredients = [
-//     'chicken', 'beef', 'pork', 'fish', 'salmon', 'tuna', 'shrimp', 'eggs',
-//     'rice', 'pasta', 'noodles', 'bread', 'flour', 'quinoa', 'oats',
-//     'tomatoes', 'onions', 'garlic', 'carrots', 'potatoes', 'bell peppers', 'mushrooms', 'spinach', 'broccoli', 'lettuce',
-//     'cheese', 'milk', 'butter', 'yogurt', 'cream', 'mozzarella', 'parmesan', 'cheddar',
-//     'olive oil', 'vegetable oil', 'coconut oil', 'vinegar', 'soy sauce', 'salt', 'pepper', 'basil', 'oregano', 'thyme',
-//     'ginger', 'chili', 'lemon', 'lime', 'avocado', 'cucumber', 'beans', 'lentils', 'chickpeas',
-//     'honey', 'sugar', 'vanilla', 'cinnamon', 'paprika', 'cumin', 'turmeric', 'black pepper', 'coriander', 'parsley', 
-//     'cilantro', 'mint', 'bay leaves', 'mustard', 'ketchup', 'mayonnaise', 'hot sauce', 'salsa', 'peanut butter', 'almond butter',
-//     'sesame oil', 'fish sauce', 'taco seasoning', 'curry powder', 'garam masala', 'cayenne pepper', 'nutmeg', 'cloves', 'allspice',
-//     'baking powder', 'baking soda', 'cornstarch', 'yeast', 'poppy seeds', 'sesame seeds', 'chia seeds',
-//     'flaxseeds', 'walnuts', 'almonds', 'cashews', 'pecans', 'hazelnuts', 'pistachios', 'sunflower seeds',
-//     'pumpkin seeds', 'dried fruits', 'raisins', 'cranberries', 'apricots', 'dates', 'figs', 'prunes', 'coconut flakes',
-//     'dark chocolate', 'milk chocolate', 'white chocolate', 'cocoa powder', 'matcha powder', 'protein powder', 'oat milk', 'almond milk', 'soy milk', 'coconut milk',
-//     'rice milk', 'cashew milk', 'hemp milk', 'flax milk', 'peanut milk', 'hazelnut milk', 'macadamia milk', 'tapioca pearls', 'soba noodles', 'udon noodles', 
-//     'ramen noodles', 'couscous', 'bulgur wheat', 'farro', 'barley', 'millet', 'buckwheat', 'polenta', 'grits',
-//     'canned tomatoes', 'canned beans', 'canned corn', 'canned tuna', 'canned salmon', 'canned coconut milk', 'canned soup', 'canned fruit', 'canned vegetables', 'canned chili',
-//     'frozen vegetables', 'frozen fruits', 'frozen meals', 'frozen pizza', 'frozen seafood', 'frozen meat', 'frozen bread', 'frozen desserts', 'frozen breakfast items',
-//     'frozen snacks', 'frozen soups', 'frozen vegetables mix', 'frozen stir-fry mix', 'frozen smoothie packs', 'frozen breakfast burritos', 'frozen waffles', 'frozen pancakes', 'frozen bagels', 'frozen croissants',
-//     'frozen pastries', 'frozen desserts', 'frozen ice cream', 'frozen yogurt', 'frozen fruit bars', 'frozen popsicles', 'frozen cakes',
-//     'frozen pies', 'frozen cookies', 'frozen brownies', 'frozen muffins', 'frozen doughnuts', 'frozen éclairs', 'frozen tarts',
-//     'frozen quiches', 'frozen lasagna', 'frozen casseroles', 'frozen enchiladas', 'frozen burritos', 'frozen wraps', 'frozen sandwiches', 'frozen paninis', 'frozen sliders', 'frozen meatballs',
-//     'frozen chicken nuggets', 'frozen fish sticks', 'frozen shrimp', 'frozen scallops', 'frozen calamari', 'frozen crab cakes', 'frozen lobster tails', 'frozen clams', 'frozen mussels', 'frozen oysters',
-//     'frozen vegetables medley', 'frozen stir-fry vegetables', 'frozen broccoli florets', 'frozen spinach', 'frozen peas', 'frozen corn', 'frozen green beans', 'frozen mixed vegetables', 'frozen bell peppers', 'frozen carrots',
-//     'frozen cauliflower', 'frozen zucchini', 'frozen squash', 'frozen asparagus', 'frozen Brussels sprouts', 'frozen okra', 'frozen edamame', 'frozen artichokes', 'frozen mushrooms', 'frozen sweet potatoes',
-//     'frozen butternut squash', 'frozen pumpkin', 'frozen kale', 'frozen collard greens', 'frozen Swiss chard', 'frozen bok choy', 'frozen napa cabbage', 'frozen bean sprouts', 'frozen water chestnuts', 'frozen bamboo shoots',
-//     'frozen jicama', 'frozen parsnips', 'frozen turnips', 'frozen rutabaga', 'frozen kohlrabi', 'frozen leeks', 'frozen shallots', 'frozen garlic cloves', 'frozen ginger', 'frozen herbs',
-//     'frozen cilantro', 'frozen parsley', 'frozen basil', 'frozen dill', 'frozen chives', 'frozen thyme', 'frozen rosemary', 'frozen sage', 'frozen tarragon', 'frozen oregano',
-//     'frozen marjoram', 'frozen bay leaves', 'frozen lemongrass', 'frozen', 'frozen kaffir lime leaves', 'frozen curry leaves', 'frozen mint', 'frozen dill weed', 'frozen fennel fronds',
-//     'frozen lemon balm'
-//   ]
+
 
 export const commonIngredients = [
     // Meats & Poultry
-    'chicken', 'beef', 'pork', 'lamb', 'duck', 'turkey', 'goose', 'quail', 'venison', 'bison', 
+    'chicken', 'egg', 'beef', 'pork', 'lamb', 'duck', 'turkey', 'goose', 'quail', 'venison', 'bison', 
     'rabbit', 'veal', 'bacon', 'sausage', 'ham', 'prosciutto', 'pepperoni', 'salami', 'chorizo',
     'ground beef', 'ground turkey', 'ground chicken', 'ground pork', 'steak', 'ribs', 'chicken wings',
     'chicken thighs', 'chicken breasts', 'drumsticks', 'liver', 'heart', 'oxtail', 'short ribs',
