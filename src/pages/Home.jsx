@@ -1,29 +1,48 @@
-import React from "react"
+
+import React, { useContext, useEffect } from "react"
 import { Link } from "react-router-dom"
-import axios from "axios"
 
 import "../styles/Home.css"
 
-import Navbar from "../components/Navbar"
-import Footer from "../components/Footer"
+import IngredientInput from "../components/IngredientInput"
+import { MainContext } from "../context/main/main-context"
 import RecipeCard from "../components/RecipeCard"
-import RecipeCardSecond from "../components/RecipeCardSecond"
 
 function Home() {
+
+  const { getRecipeFromOpenAI, recipes } = useContext(MainContext)
+
   const [listRecipes, setListRecipes] = React.useState([])
   const [newRecipes, setNewRecipes] = React.useState([])
   const [keyword, setKeyword] = React.useState("")
   const [searchResult, setSearchResult] = React.useState([])
+  const [selectedIngredients, setSelectedIngredients] = React.useState([])
 
-
-  const handleSearch = () => {
+  const handleSearch = async() => {
     
+    try {
+
+      await getRecipeFromOpenAI?.(selectedIngredients)
+
+    } catch (error) {
+      console.error("Error fetching recipes:", error);
+      
+    }
   }
 
   function addDefaultSrc(ev) {
     ev.target.src = "./img/Group-697.webp"
     ev.target.style = { width: "50%" }
   }
+
+  useEffect(() => {
+    
+    if(recipes && recipes.length > 0) {
+      setSearchResult(recipes)
+    }
+
+  }, [recipes])
+  
 
   return (
     <div>
@@ -50,57 +69,76 @@ function Home() {
           </div>
 
           <div
-            class="modal fade"
+            className="modal fade"
             id="search-recipe"
-            tabindex={0}
+            tabIndex={0}
             aria-labelledby="exampleModalLabel"
             aria-hidden="true"
           >
-            <div class="modal-dialog modal-xl">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h1 class="modal-title fs-5" id="exampleModalLabel">
-                    Search Recipe
+            <div className="modal-dialog modal-xl">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h1 className="modal-title fs-5" id="exampleModalLabel">
+                    Search Recipe by Ingredients
                   </h1>
                   <button
                     type="button"
-                    class="btn-close"
+                    className="btn-close"
                     data-bs-dismiss="modal"
                     aria-label="Close"
                   ></button>
                 </div>
-                <div class="modal-body">
-                  <input
-                    type="text"
-                    className="form-control form-control-lg"
-                    placeholder="Add Ingredient"
-                    onChange={(e) => {
-                      setKeyword(e.target.value)
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.keyCode === 13) {
-                        handleSearch()
-                      }
-                    }}
-                  />
+                <div className="modal-body">
+                  <div className="mb-4">
+                    <label className="form-label fw-semibold mb-3">
+                      <span style={{ color: "#2e266f" }}>
+                        🥗 Add ingredients you have available:
+                      </span>
+                    </label>
+                    <IngredientInput
+                      ingredients={selectedIngredients}
+                      setIngredients={setSelectedIngredients}
+                      placeholder="Start typing ingredients... (e.g., chicken, rice, tomatoes)"
+                    />
+                  </div>
+                  
+                  {selectedIngredients.length > 0 && (
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <span className="text-muted">
+                        {selectedIngredients.length} ingredient{selectedIngredients.length !== 1 ? 's' : ''} selected
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={handleSearch}
+                        style={{ backgroundColor: "#efc81a", borderColor: "#efc81a", color: "#2e266f" }}
+                      >
+                        🔍 Search Recipes
+                      </button>
+                    </div>
+                  )}
+
                   <div className="row justify-content-center gap-1 gap-sm-2 gap-md-4 mt-4">
                     {searchResult.length > 0
-                      ? searchResult.map((item) => {
+                      ? searchResult.map((item,index) => {
                           return (
-                            <RecipeCardSecond
-                              title={item?.title}
-                              image={item?.recipePicture}
-                              id={item?.id}
-                            />
+                            <RecipeCard recipe={item} key={index}/>
                           )
                         })
-                      : "Recipe Not Found"}
+                      : selectedIngredients.length > 0 
+                        ? <div className="text-center text-muted py-4">
+                            <p>Click "Search Recipes" to find recipes with your selected ingredients!</p>
+                          </div>
+                        : <div className="text-center text-muted py-4">
+                            <p>Add some ingredients above to start searching for recipes</p>
+                          </div>
+                    }
                   </div>
                 </div>
-                <div class="modal-footer">
+                <div className="modal-footer">
                   <button
                     type="button"
-                    class="btn btn-secondary"
+                    className="btn btn-secondary"
                     data-bs-dismiss="modal"
                   >
                     Close
@@ -185,7 +223,7 @@ function Home() {
         <div className="row flex-column gap-5 flex-lg-row py-5">
           <div className="col text-center text-lg-start animate__animated animate__fadeInLeft">
             <img
-              src={newRecipes?.recipePicture}
+              src='./img/Rectangle-319.webp'
               alt="food"
               onError={addDefaultSrc}
               style={{ width: "80%" }}

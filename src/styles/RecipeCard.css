@@ -1,0 +1,11 @@
+.recipe-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+}
+
+.highlight-sub {
+  background-color: #fff3cd;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}

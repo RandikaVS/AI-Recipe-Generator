@@ -4,9 +4,15 @@ import {useMemo, useReducer, useCallback, useEffect} from 'react';
 import axios, {endpoints} from '../../utils/axios';
 
 import {MainContext} from './main-context';
+import { OPENAI_API_KEY, OPENAI_BASE_URL } from '../../config-global';
+import OpenAI from 'openai';
+import { generateRecipePrompt } from '../../utils/generatePrompt';
+
 
 const initialState = {
   loading: false,
+  recipes: [],
+
 };
 
 const reducer = (state, action) => {
@@ -26,6 +32,12 @@ const reducer = (state, action) => {
     return {
       ...state,
       loading: false,
+    };
+  }
+  if (action.type === 'SET_SEARCH_RESULT') {
+    return {
+      ...state,
+      recipes: action.payload.recipes,
     };
   }
   return state;
@@ -51,87 +63,56 @@ export function MainContextProvider({children}) {
     initialize();
   }, [initialize]);
 
-  const createQuatation = useCallback(async (quatation,bankAdmin,formData) => {
+  const setLoadingStart = () => dispatch({ type: 'LOADING_START' });
 
-    formData.append('civilStatus',quatation.civilStatus)
-    formData.append('coverList',quatation.coverList)
-    formData.append('createDate',quatation.createDate)
-    formData.append('customerAddress',quatation.customerAddress)
-    formData.append('customerName',quatation.customerName)
-    formData.append('dob',quatation.dob)
-    formData.append('gender',quatation.gender)
-    formData.append('bankAccount',quatation.bankAccount)
-    formData.append('insurancePolicy',quatation.insurancePolicy)
-    formData.append('interestRate',quatation.interestRate)
-    formData.append('loanAmount',quatation.loanAmount)
-    formData.append('loanPeriod',quatation.loanPeriod)
-    formData.append('loanPurpose',quatation.loanPurpose)
-    formData.append('mobileNumber',quatation.mobileNumber)
-    formData.append('nic',quatation.nic)
-    formData.append('profession',quatation.profession)
-    formData.append('referanceNo',quatation.referanceNo)
-    formData.append('remarks',quatation.remarks)
-    formData.append('refAdmin',bankAdmin?._id)
+  const setLoadingEnd = () => dispatch({ type: 'LOADING_END' });
 
-  //   const newQuatation = {
-  //     civilStatus: quatation.civilStatus,
-  //     coverList: quatation.coverList,
-  //     createDate: quatation.createDate,
-  //     customerAddress: quatation.customerAddress,
-  //     customerName: quatation.customerName,
-  //     dob: quatation.dob,
-  //     gender: quatation.gender,
-  //     bankAccount: quatation.bankAccount,
-  //     insurancePolicy: quatation.insurancePolicy,
-  //     interestRate: quatation.interestRate,
-  //     loanAmount: quatation.loanAmount,
-  //     loanPeriod: quatation.loanPeriod,
-  //     loanPurpose: quatation.loanPurpose,
-  //     mobileNumber: quatation.mobileNumber,
-  //     nic: quatation.nic,
-  //     profession: quatation.profession,
-  //     referanceNo: quatation.referanceNo,
-  //     remarks: quatation.remarks,
-  //     refAdmin:bankAdmin?._id
-  // };
 
-    const response = await axios.post(endpoints.quatation.create, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+  const getRecipeFromOpenAI = useCallback(async (ingredients) => {
 
-    const { success, message,data } = response.data;
-    
-    dispatch({
-      type: 'CREATE_QUATATION',
-      payload: {
-        new_quatation: {
-          success,
-          message,
-          data
-        },
-      },
-    });
+      if (!ingredients || ingredients.length === 0) {
+        console.error('No ingredients provided');
+        return;
+      }
+
+      setLoadingStart();
+
+      try {
+
+        const client = new OpenAI({
+          apiKey: OPENAI_API_KEY,
+          baseURL: OPENAI_BASE_URL,
+          dangerouslyAllowBrowser: true,
+        });
+
+        const prompt = generateRecipePrompt(ingredients);
+
+        const response = await client.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+        });
+
+        const rawContent = response.choices[0]?.message?.content || '';
+        const cleanedContent = rawContent.replace(/```json|```/g, '').trim();
+       
+        const content = JSON.parse(cleanedContent);
+       
+        dispatch({
+          type: 'SET_SEARCH_RESULT',
+          payload: {
+            recipes: content
+          }
+        });
+
+
+      } catch (error) {
+        console.error('OpenAI Error:', error);
+      } finally {
+        setLoadingEnd();
+      }
   }, []);
-  
-  const getQuatationByUserId = useCallback(async () => {
 
-    const response = await axios.get(endpoints.quatation.get_by_user_id);
-
-    const { success, message,data } = response.data;
-    
-    dispatch({
-      type: 'GET_QUATATION_BY_USER',
-      payload: {
-        quatations: {
-          data,
-          success,
-          message
-        },
-      },
-    });
-  }, []);
 
  
 
@@ -142,14 +123,15 @@ export function MainContextProvider({children}) {
   const memoizedValue = useMemo(
     () => ({
       loading: state.loading,
+      recipes: state.recipes,
 
-      createQuatation,
-      getQuatationByUserId,
+      getRecipeFromOpenAI,
      
     }), [
-          createQuatation, 
-          getQuatationByUserId, 
+          getRecipeFromOpenAI,
+
           state.loading,
+          state.recipes,
           state
         ]);
 

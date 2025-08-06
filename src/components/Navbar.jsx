@@ -1,7 +1,7 @@
 import React from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
-import { addAuth } from "../store/reducers/auth"
+
 
 function Navbar() {
   // const navigate = useNavigate()
