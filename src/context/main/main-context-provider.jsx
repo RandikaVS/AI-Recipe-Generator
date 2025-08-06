@@ -87,10 +87,23 @@ export function MainContextProvider({children}) {
 
         const prompt = generateRecipePrompt(ingredients);
 
-        const response = await client.chat.completions.create({
-          model: 'gpt-4o-mini',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
+        // const response = await client.chat.completions.create({
+        //   model: 'gpt-4o-mini',
+        //   messages: [{ role: 'developer', content: prompt }],
+        //   temperature: 0.7,
+        // });
+
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer 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`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [{ role: 'developer', content: prompt }],
+            temperature: 0.7,
+          }),
         });
 
         const rawContent = response.choices[0]?.message?.content || '';

@@ -50,7 +50,6 @@ function Home() {
 
   return (
     <div>
-      {/* <Navbar /> */}
 
       <div className="right-layer animate__animated animate__fadeIn"></div>
 
