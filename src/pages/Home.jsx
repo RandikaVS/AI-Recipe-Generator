@@ -1,32 +1,66 @@
-import React from "react"
+import React, { useContext, useEffect } from "react"
 import { Link } from "react-router-dom"
-import axios from "axios"
 
 import "../styles/Home.css"
 
-import Navbar from "../components/Navbar"
-import Footer from "../components/Footer"
-import RecipeCard from "../components/RecipeCard"
-import RecipeCardSecond from "../components/RecipeCardSecond"
 import IngredientInput from "../components/IngredientInput"
+import { MainContext } from "../context/main/main-context"
+import RecipeCard from "../components/RecipeCard"
+import { saveSearchToHistory, getRecentRecipesFromHistory, clearSearchHistory } from "../utils/searchHistory"
 
 function Home() {
+
+  const { getRecipeFromOpenAI, recipes } = useContext(MainContext)
+
   const [listRecipes, setListRecipes] = React.useState([])
   const [newRecipes, setNewRecipes] = React.useState([])
   const [keyword, setKeyword] = React.useState("")
   const [searchResult, setSearchResult] = React.useState([])
   const [selectedIngredients, setSelectedIngredients] = React.useState([])
+  const [searchHistory, setSearchHistory] = React.useState([])
+  const [isSearching, setIsSearching] = React.useState(false)
 
-  const handleSearch = () => {
-    // TODO: Implement search functionality with selectedIngredients
-    console.log("Searching with ingredients:", selectedIngredients)
-    // You can implement your search logic here using the selectedIngredients array
+  const handleSearch = async() => {
+    
+    try {
+      setIsSearching(true)
+      await getRecipeFromOpenAI?.(selectedIngredients)
+
+    } catch (error) {
+      console.error("Error fetching recipes:", error);
+      
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  const handleClearHistory = () => {
+    clearSearchHistory()
+    setSearchHistory([])
   }
 
   function addDefaultSrc(ev) {
     ev.target.src = "./img/Group-697.webp"
     ev.target.style = { width: "50%" }
   }
+
+  useEffect(() => {
+    
+    if(recipes && recipes.length > 0) {
+      setSearchResult(recipes)
+      // Save to search history when recipes are successfully fetched
+      saveSearchToHistory(selectedIngredients, recipes)
+      // Update search history display
+      setSearchHistory(getRecentRecipesFromHistory(8))
+    }
+
+  }, [recipes, selectedIngredients])
+
+  // Load search history on component mount
+  useEffect(() => {
+    setSearchHistory(getRecentRecipesFromHistory(8))
+  }, [])
+  
 
   return (
     <div>
@@ -95,33 +129,44 @@ function Home() {
                         type="button"
                         className="btn btn-primary"
                         onClick={handleSearch}
+                        disabled={isSearching}
                         style={{ backgroundColor: "#efc81a", borderColor: "#efc81a", color: "#2e266f" }}
                       >
-                        🔍 Search Recipes
+                        {isSearching ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Searching...
+                          </>
+                        ) : (
+                          <>🔍 Search Recipes</>
+                        )}
                       </button>
                     </div>
                   )}
 
                   <div className="row justify-content-center gap-1 gap-sm-2 gap-md-4 mt-4">
-                    {searchResult.length > 0
-                      ? searchResult.map((item) => {
-                          return (
-                            <RecipeCardSecond
-                              key={item?.id}
-                              title={item?.title}
-                              image={item?.recipePicture}
-                              id={item?.id}
-                            />
-                          )
-                        })
-                      : selectedIngredients.length > 0 
-                        ? <div className="text-center text-muted py-4">
-                            <p>Click "Search Recipes" to find recipes with your selected ingredients!</p>
-                          </div>
-                        : <div className="text-center text-muted py-4">
-                            <p>Add some ingredients above to start searching for recipes</p>
-                          </div>
-                    }
+                    {isSearching ? (
+                      <div className="text-center text-muted py-4">
+                        <div className="spinner-border text-warning" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <p className="mt-2">Finding delicious recipes with your ingredients...</p>
+                      </div>
+                    ) : searchResult.length > 0 ? (
+                      searchResult.map((item,index) => {
+                        return (
+                          <RecipeCard recipe={item} key={index}/>
+                        )
+                      })
+                    ) : selectedIngredients.length > 0 ? (
+                      <div className="text-center text-muted py-4">
+                        <p>Click "Search Recipes" to find recipes with your selected ingredients!</p>
+                      </div>
+                    ) : (
+                      <div className="text-center text-muted py-4">
+                        <p>Add some ingredients above to start searching for recipes</p>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -146,52 +191,51 @@ function Home() {
         </div>
       </div>
 
-      <div
-        className="container d-flex align-items-center mt-3 mb-5 animate__animated animate__flipInX"
-        style={{ height: "80px" }}
-      >
-        <div
-          className="vr"
-          style={{ width: "15px", backgroundColor: "#efc81a", opacity: "100%" }}
-        ></div>
-        <p className="m-0 ms-3 fs-1 fw-semibold" style={{ color: "#3f3a3a" }}>
-          Popular For You!
-        </p>
-      </div>
+      {/* Search History Section (replacing Popular For You) */}
+      {searchHistory.length > 0 && (
+        <>
+          <div
+            className="container d-flex align-items-center justify-content-between mt-3 mb-5 animate__animated animate__flipInX"
+            style={{ height: "80px" }}
+          >
+            <div className="d-flex align-items-center">
+              <div
+                className="vr"
+                style={{ width: "15px", backgroundColor: "#efc81a", opacity: "100%" }}
+              ></div>
+              <p className="m-0 ms-3 fs-1 fw-semibold" style={{ color: "#3f3a3a" }}>
+                Recently Searched Recipes
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn btn-outline-danger btn-sm"
+              onClick={handleClearHistory}
+              title="Clear search history"
+            >
+              🗑️ Clear History
+            </button>
+          </div>
 
-      <div className="container" style={{ marginBottom: "100px" }}>
-        <div className="row flex-column gap-5 flex-lg-row py-5">
-          <div className="col text-center text-lg-start animate__animated animate__fadeInLeft">
-            <img
-              src="./img/nasi-goreng-sederhana.webp"
-              alt="food"
-              style={{ width: "80%" }}
-            />
+          <div className="container" style={{ marginBottom: "100px" }}>
+            <div className="row justify-content-center gap-1 gap-sm-2 gap-md-4">
+              {searchHistory.map((recipe, index) => {
+                return (
+                  <div key={index} className="position-relative">
+                    <RecipeCard recipe={recipe} />
+                    <div className="search-info-badge">
+                      <small className="text-muted">
+                        Found with: {recipe.searchIngredients?.slice(0, 2).join(', ')}
+                        {recipe.searchIngredients?.length > 2 && ` +${recipe.searchIngredients.length - 2} more`}
+                      </small>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
-          <div className="col-8 col-lg-4 d-flex flex-column d-lg-block justify-content-center align-self-center animate__animated animate__fadeInRight">
-            <h2
-              className="text-center text-lg-start fs-1"
-              style={{ color: "#3f3a3a" }}
-            >
-              Nasi Goreng Sederhana
-            </h2>
-            <hr className="opacity-100" />
-            <p
-              style={{ color: "#3f3a3a" }}
-              className="text-center text-lg-start"
-            >
-              Resep Nasi Goreng Sederhana, Praktis Lezat Hanya dengan Lima Bahan
-            </p>
-            <Link
-              to="/detail-recipe/12"
-              className="btn btn-lg"
-              style={{ backgroundColor: "#efc81a", color: "#fff" }}
-            >
-              Learn More
-            </Link>
-          </div>
-        </div>
-      </div>
+        </>
+      )}
 
       <div
         className="container d-flex align-items-center my-5 animate__animated animate__flipInX"
@@ -212,7 +256,7 @@ function Home() {
         <div className="row flex-column gap-5 flex-lg-row py-5">
           <div className="col text-center text-lg-start animate__animated animate__fadeInLeft">
             <img
-              src={newRecipes?.recipePicture}
+              src='./img/Rectangle-319.webp'
               alt="food"
               onError={addDefaultSrc}
               style={{ width: "80%" }}
@@ -223,7 +267,7 @@ function Home() {
               className="text-center text-lg-start fs-1"
               style={{ color: "#3f3a3a" }}
             >
-              {newRecipes?.title}
+              {newRecipes?.title || "Discover New Flavors"}
             </h2>
             <hr className="opacity-100" style={{ width: "25% !important" }} />
             <p
@@ -233,7 +277,7 @@ function Home() {
               Resep Terbaru yang Dapat Anda coba untuk Keluarga Kesayangan
             </p>
             <Link
-              to={`/detail-recipe/${newRecipes?.id}`}
+              to={`/detail-recipe/${newRecipes?.id || ''}`}
               className="btn btn-lg"
               style={{ backgroundColor: "#efc81a", color: "#fff" }}
             >
