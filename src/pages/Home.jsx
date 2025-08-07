@@ -14,16 +14,6 @@ import { useLocalStorage } from "../hooks/use-local-storage"
 import RecipeViewCard from "../components/RecipeViewCard"
 import RecipeSearchModal from "../components/RecipeSearchModal";
 
-const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: '#fff',
-  ...theme.typography.body2,
-  padding: theme.spacing(1),
-  textAlign: 'center',
-  color: (theme.vars ?? theme).palette.text.secondary,
-  ...theme.applyStyles('dark', {
-    backgroundColor: '#1A2027',
-  }),
-}));
 
 function Home() {
 
@@ -52,6 +42,8 @@ function Home() {
     ev.target.src = "./img/Group-697.webp"
     ev.target.style = { width: "50%" }
   }
+
+  const clearSearchResult = () => setSearchResult([])
 
   useEffect(() => {
     
@@ -95,8 +87,8 @@ function Home() {
             </h1>
             <input
               type="text"
-              className="form-control form-control-lg"
-              placeholder="Search Food"
+              className="form-control form-control-lg attention-blink"
+              placeholder="Search Recipe"
               data-bs-toggle="modal"
               data-bs-target="#search-recipe"
             />
@@ -107,6 +99,7 @@ function Home() {
             setSelectedIngredients={setSelectedIngredients}
             handleSearch={handleSearch}
             searchResult={searchResult}
+            clearSearchResult={clearSearchResult}
             imageUrl={recipeImage}
           />
 
@@ -120,7 +113,7 @@ function Home() {
         </div>
       </div>
 
-     {recentRecipes?.recent?.length > 0 ? (
+     {recentRecipes?.recent?.length > 0 && (
           <>
             <div
               className="container d-flex align-items-center mt-3 mb-5 animate__animated animate__flipInX"
@@ -145,7 +138,7 @@ function Home() {
               </Grid>
             </Box>
           </>
-    ):(
+    )}
 
       <>
 
@@ -235,7 +228,6 @@ function Home() {
         </div>
 
        </>
-    )}
   </div>
   )
 }

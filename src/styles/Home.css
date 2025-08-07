@@ -20,13 +20,8 @@
   z-index: -998;
 }
 
-/* hr {
-  width: 25% !important;
-} */
 
 .img-popular-recipe {
-  /* width: 25vw !important;
-  height: 50vh !important; */
   width: 350px !important;
   height: 300px !important;
   background-size: cover;
@@ -76,3 +71,22 @@
     font-size: 2%;
   }
 }
+
+@keyframes blink-outline {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 10px 4px rgba(255, 165, 0, 0.9);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.7);
+  }
+}
+
+.attention-blink {
+  animation: blink-outline 1.5s infinite;
+  border: 2px solid orange;
+  transition: box-shadow 0.3s ease-in-out;
+}
+

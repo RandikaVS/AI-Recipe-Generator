@@ -1,21 +1,54 @@
-import React, { useContext } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import RecipeViewCard from './RecipeViewCard'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import IngredientInput from './IngredientInput'
 import Backdrop from '@mui/material/Backdrop'
 import CircularProgress from '@mui/material/CircularProgress'
-import { MainContext } from '../context/main/main-context'
+import { MainContext } from '../context/main'
+import SplashScreen from './SplashScreen'
 
-function RecipeSearchModal({selectedIngredients,setSelectedIngredients,handleSearch,searchResult,imageUrl}) {
+function RecipeSearchModal({selectedIngredients,setSelectedIngredients,handleSearch,searchResult,clearSearchResult,imageUrl}) {
 
-    const {loading} = useContext(MainContext);
+    const {loading, clearRecipies} = useContext(MainContext);
+
+    const modalRef = useRef(null)
+    const [localResults, setLocalResults] = useState(searchResult)
+    const [image, setImage] = useState(imageUrl)
+
+    useEffect(() => {
+      const modalElement = document.getElementById('search-recipe')
+
+      const handleModalClose = () => {
+        setSelectedIngredients([])
+        setLocalResults([])
+        clearSearchResult()
+        clearRecipies()
+        setImage(null)
+      }
+
+      modalElement?.addEventListener('hidden.bs.modal', handleModalClose)
+
+      return () => {
+        modalElement?.removeEventListener('hidden.bs.modal', handleModalClose)
+      }
+    }, [])
+
+    useEffect(() => {
+      setLocalResults(searchResult)
+    }, [searchResult])
+
+    useEffect(() => {
+      setImage(imageUrl)
+    }, [imageUrl])
+    
 
   return (
-        <div
+         <div
             className="modal fade"
             id="search-recipe"
             tabIndex={0}
+            ref={modalRef}
             aria-labelledby="exampleModalLabel"
             aria-hidden="true"
           >
@@ -62,6 +95,16 @@ function RecipeSearchModal({selectedIngredients,setSelectedIngredients,handleSea
                     </div>
                   )}
 
+                  {loading && (
+                    <Backdrop
+                        sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
+                        open={true}
+                    >
+                        <SplashScreen/>                        
+                    </Backdrop>
+                    
+                  )}
+
                   {searchResult && searchResult.length > 0 ?(
 
                     <Box sx={{ flexGrow: 1 }} className="container px-4 py-5 mb-5 container-popular-recipe">
@@ -76,23 +119,9 @@ function RecipeSearchModal({selectedIngredients,setSelectedIngredients,handleSea
 
                   ):(
                     selectedIngredients.length > 0 ?(
-                        loading?(
-                            <Backdrop
-                                sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
-                                open={loading}
-                            >
-                                
-                                <CircularProgress color="inherit" />
-                            </Backdrop>
-                        ):(
-
-                            <div className="text-center text-muted py-4">
-                                <p>Click "Search Recipes" to find recipes with your selected ingredients!</p>
-                            </div>
-
-                        )
-
-                      
+                      <div className="text-center text-muted py-4">
+                          <p>Click "Search Recipes" to find recipes with your selected ingredients!</p>
+                      </div>
                     ):(
                       <div className="text-center text-muted py-4">
                             <p>Add some ingredients above to start searching for recipes</p>
