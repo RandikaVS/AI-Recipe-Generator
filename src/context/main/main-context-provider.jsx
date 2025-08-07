@@ -81,7 +81,7 @@ export function MainContextProvider({children}) {
 
     dispatch({
       type: 'INITIAL',
-      payload: {...initialState}
+      payload: {}
     });
 
   },[]);
@@ -93,6 +93,16 @@ export function MainContextProvider({children}) {
   const setLoadingStart = () => dispatch({ type: 'LOADING_START' });
 
   const setLoadingEnd = () => dispatch({ type: 'LOADING_END' });
+
+  const clearRecipies = () =>{
+
+    dispatch({ 
+      type: 'SET_SEARCH_RESULT',
+      payload: {
+            recipes: []
+        }
+     });
+  }
   
   const setImageLoadingStart = () => dispatch({ type: 'IMAGE_LOADING_START' });
 
@@ -100,12 +110,12 @@ export function MainContextProvider({children}) {
 
   const getRecipeFromOpenAI = useCallback(async (ingredients) => {
 
+      setLoadingStart();
+
       if (!ingredients || ingredients.length === 0) {
         console.error('No ingredients provided');
         return;
       }
-
-      setLoadingStart();
 
       try {
 
@@ -206,18 +216,20 @@ export function MainContextProvider({children}) {
       imageLoading: state.imageLoading,
 
       getRecipeFromOpenAI,
-      generateRecipeImage
+      generateRecipeImage,
+      clearRecipies
      
     }), [
           getRecipeFromOpenAI,
           generateRecipeImage,
+          clearRecipies,
 
           state.loading,
           state.recipes,
           state.imagePrompt,
           state.imageUrl,
           state.imageLoading,
-          state
+          
         ]);
 
   return <MainContext.Provider value={memoizedValue}>{children}</MainContext.Provider>;

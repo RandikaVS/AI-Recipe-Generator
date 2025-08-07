@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 
-import { SplashScreen } from 'src/components/loading-screen';
 
 import { MainContext } from './main-context';
+import SplashScreen from '../../components/SplashScreen';
 
 // ----------------------------------------------------------------------
 

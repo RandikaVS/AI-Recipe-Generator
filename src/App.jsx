@@ -1,66 +1,18 @@
 import "bootstrap/dist/css/bootstrap.css"
 import "bootstrap/dist/js/bootstrap.js"
 
-import { createBrowserRouter, RouterProvider } from "react-router-dom"
+import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom"
 
 
 
 import Home from "./pages/Home"
 
-import { MainContextProvider } from "./context/main/main-context-provider"
+import { MainContextProvider } from "./context/main"
 import MainLayout from "./layout/MainLayout"
+import { Suspense } from "react"
+import SplashScreen from "./components/SplashScreen"
 
 
-// const router = createBrowserRouter([
-//   {
-//     path: "/",
-//     element: <Home />,
-//   },
-//   {
-//     path: "/add-recipe",
-//     element: <AddRecipe />,
-//   },
-//   {
-//     path: "/profile",
-//     element: <Profile />,
-//   },
-//   {
-//     path: "/login",
-//     element: <Login />,
-//   },
-//   {
-//     path: "/forgot-password",
-//     element: <ForgotPassword />,
-//   },
-//   {
-//     path: "/code-reset-password",
-//     element: <CodeResetPassword />,
-//   },
-//   {
-//     path: "/reset-password",
-//     element: <ResetPassword />,
-//   },
-//   {
-//     path: "/registration",
-//     element: <Registration />,
-//   },
-//   {
-//     path: "/detail-recipe/:slug",
-//     element: <DetailRecipe />,
-//   },
-//   {
-//     path: "/detail-video-step/:id",
-//     element: <DetailVideoStep />,
-//   },
-//   {
-//     path: "/edit-profile",
-//     element: <EditProfile />,
-//   },
-//   {
-//     path: "/edit-recipe/:id",
-//     element: <EditRecipe />,
-//   },
-// ])
 
 const router = createBrowserRouter([
   {
@@ -78,13 +30,13 @@ const router = createBrowserRouter([
 function App() {
   return (
     <div>
-      {/* <PersistGate loading={null} persistor={persistor}> */}
-        {/* <Provider store={store}> */}
-        <MainContextProvider>
+      <MainContextProvider>
+        <Suspense fallback={<SplashScreen/>}>
+          <Outlet/>
           <RouterProvider router={router} />
-        </MainContextProvider>
-        {/* </Provider> */}
-      {/* </PersistGate> */}
+        </Suspense>
+      </MainContextProvider>
+       
     </div>
   )
 }
